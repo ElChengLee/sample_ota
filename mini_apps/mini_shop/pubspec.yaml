@@ -1,0 +1,32 @@
+name: mini_shop
+description: "Mini App demo viết bằng Flutter web, được Shell tải động (OTA) và chạy trong WebView."
+publish_to: 'none'
+
+# Version này được script build đọc ra để ghi vào manifest.json trên server.
+# Tăng version + chạy lại `dart run bin/build.dart` (trong server/) để Shell nhận bản cập nhật.
+version: 1.5.2
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  design_system:
+    path: ../../packages/design_system
+  app_theme:
+    path: ../../packages/app_theme
+  mini_app_bridge:
+    path: ../../packages/mini_app_bridge
+  auto_route: ^11.2.0
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  auto_route_generator: ^10.6.0
+  build_runner: ^2.16.1
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

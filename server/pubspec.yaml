@@ -1,0 +1,12 @@
+name: ota_server
+description: "Build mini app (Flutter web) thành bundle .zip + manifest.json và serve cho Shell tải về."
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  archive: ^4.5.2
+  crypto: ^3.0.8
+  cryptography: ^2.9.0
+  path: ^1.9.1

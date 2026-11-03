@@ -1,0 +1,6 @@
+{
+  "id": "mini_game",
+  "name": "Mini Game",
+  "description": "Lật thẻ tìm cặp, Flutter thuần không dùng package chung",
+  "icon": "game"
+}

@@ -1,0 +1,30 @@
+name: mini_game
+description: "Mini App viết bằng Flutter thuần (không dùng package chung), được Shell tải động (OTA)."
+publish_to: 'none'
+
+# Script build (server/bin/build.dart) đọc version này để ghi vào manifest.json.
+version: 1.1.1
+
+environment:
+  sdk: ^3.13.0
+
+# Cố ý chỉ dùng Flutter SDK: không design_system/app_theme/mini_app_bridge,
+# không auto_route, không codegen. Bridge với Shell tự cài đặt ở lib/shell_bridge.dart.
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  # Đóng gói Roboto để không tải font từ fonts.gstatic.com (chạy offline được).
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: fonts/Roboto-Regular.ttf
+        - asset: fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: fonts/Roboto-Bold.ttf
+          weight: 700

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Chỉ bản debug: cho phép HTTP tới mọi host để thử OTA server qua IP LAN
+  (dart-define MINI_APP_SERVER=http://192.168.x.x:8080). Tính toàn vẹn vẫn
+  được đảm bảo bằng chữ ký manifest.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,17 @@
+name: app_theme
+description: "System theme: build ThemeData từ design tokens, ThemeController, ThemeSpec serializable để đồng bộ sang Mini App."
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.30.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  design_system:
+    path: ../design_system
+
+dev_dependencies:
+  flutter_lints: ^6.0.0

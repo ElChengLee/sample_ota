@@ -1,0 +1,28 @@
+name: design_system
+description: "Shared design system (tokens + components) dùng chung cho Shell và Mini App."
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.30.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+# Roboto (Apache 2.0, lấy từ Android SDK) đóng gói kèm để mini app Flutter web
+# không tải font từ fonts.gstatic.com. Dùng: TextStyle(fontFamily: DsTypography.fontFamily,
+# package: DsTypography.fontPackage) — AppTheme đã đặt sẵn cho cả ThemeData.
+flutter:
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: fonts/Roboto-Regular.ttf
+        - asset: fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: fonts/Roboto-Bold.ttf
+          weight: 700

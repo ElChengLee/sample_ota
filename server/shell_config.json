@@ -1,0 +1,26 @@
+{
+  "apps": {
+    "mini_shop": {
+      "permissions": ["userInfo", "payment", "deepLink"],
+      "links": {
+        "canOpen": ["mini_game", "mini_native"],
+        "openableBy": ["*"],
+        "exported": ["/", "/product/*"]
+      }
+    },
+    "mini_game": {
+      "permissions": ["userInfo"],
+      "links": {
+        "openableBy": ["mini_shop"],
+        "exported": ["/"]
+      }
+    },
+    "mini_native": {
+      "permissions": ["userInfo", "payment", "deepLink"],
+      "links": {
+        "canOpen": ["mini_shop", "mini_game"],
+        "openableBy": ["mini_shop"]
+      }
+    }
+  }
+}

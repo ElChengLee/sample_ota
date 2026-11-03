@@ -1,0 +1,30 @@
+name: mini_native
+description: "Mini app native (Android/iOS): chạy độc lập bằng `flutter run`, hoặc biên dịch sẵn vào Shell như một package. Không OTA."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Dùng chung với Shell: theme và component đồng nhất.
+  design_system:
+    path: ../../packages/design_system
+  app_theme:
+    path: ../../packages/app_theme
+
+  # Plugin có code native: kiểm tra plugin của mini app được đăng ký vào Shell.
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  shared_preferences_platform_interface: ^2.4.2
+
+flutter:
+  uses-material-design: true

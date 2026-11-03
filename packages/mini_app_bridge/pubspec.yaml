@@ -1,0 +1,17 @@
+name: mini_app_bridge
+description: "Giao thức message Shell <-> Mini App và client bridge cho Mini App (Flutter web)."
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.30.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  app_theme:
+    path: ../app_theme
+
+dev_dependencies:
+  flutter_lints: ^6.0.0

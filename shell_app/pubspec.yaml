@@ -1,0 +1,44 @@
+name: shell_app
+description: "Super App Shell: chứa design system/theme native, tải động mini app (Flutter web) và chạy trong WebView."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Module dùng chung (cùng nguồn với Mini App)
+  design_system:
+    path: ../packages/design_system
+  app_theme:
+    path: ../packages/app_theme
+  mini_app_bridge:
+    path: ../packages/mini_app_bridge
+
+  # Mini app native biên dịch sẵn (không OTA)
+  mini_native:
+    path: ../mini_apps/mini_native
+
+  # OTA mini app
+  webview_flutter: ^4.14.1
+  http: ^1.6.0
+  archive: ^4.5.2
+  crypto: ^3.0.8
+  path_provider: ^2.1.6
+  path: ^1.9.1
+  auto_route: ^11.2.0
+  cryptography: ^2.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  auto_route_generator: ^10.6.0
+  build_runner: ^2.16.1
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

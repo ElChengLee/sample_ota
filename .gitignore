@@ -1,0 +1,11 @@
+# Output OTA build (tái tạo bằng: cd server && dart run bin/build.dart)
+server/public/
+.dart_tool/
+build/
+
+# Khoá ký manifest OTA (tạo bằng: cd server && dart run bin/keygen.dart). KHÔNG commit.
+server/keys/
+
+# Cấu hình IDE riêng từng máy
+.idea/
+*.iml
