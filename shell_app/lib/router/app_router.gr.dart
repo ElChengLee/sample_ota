@@ -10,36 +10,53 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
-import 'package:auto_route/auto_route.dart' as _i4;
-import 'package:flutter/material.dart' as _i5;
-import 'package:shell_app/pages/home_page.dart' as _i1;
-import 'package:shell_app/pages/mini_app_page.dart' as _i2;
-import 'package:shell_app/pages/native_mini_app_page.dart' as _i3;
+import 'package:auto_route/auto_route.dart' as _i5;
+import 'package:flutter/material.dart' as _i6;
+import 'package:shell_app/pages/dev_shell_page.dart' as _i1;
+import 'package:shell_app/pages/home_page.dart' as _i2;
+import 'package:shell_app/pages/mini_app_page.dart' as _i3;
+import 'package:shell_app/pages/native_mini_app_page.dart' as _i4;
 
 /// generated route for
-/// [_i1.HomePage]
-class HomeRoute extends _i4.PageRouteInfo<void> {
-  const HomeRoute({List<_i4.PageRouteInfo>? children})
-    : super(HomeRoute.name, initialChildren: children);
+/// [_i1.DevShellPage]
+class DevShellRoute extends _i5.PageRouteInfo<void> {
+  const DevShellRoute({List<_i5.PageRouteInfo>? children})
+    : super(DevShellRoute.name, initialChildren: children);
 
-  static const String name = 'HomeRoute';
+  static const String name = 'DevShellRoute';
 
-  static _i4.PageInfo page = _i4.PageInfo(
+  static _i5.PageInfo page = _i5.PageInfo(
     name,
     builder: (data) {
-      return const _i1.HomePage();
+      return const _i1.DevShellPage();
     },
   );
 }
 
 /// generated route for
-/// [_i2.MiniAppPage]
-class MiniAppRoute extends _i4.PageRouteInfo<MiniAppRouteArgs> {
+/// [_i2.HomePage]
+class HomeRoute extends _i5.PageRouteInfo<void> {
+  const HomeRoute({List<_i5.PageRouteInfo>? children})
+    : super(HomeRoute.name, initialChildren: children);
+
+  static const String name = 'HomeRoute';
+
+  static _i5.PageInfo page = _i5.PageInfo(
+    name,
+    builder: (data) {
+      return const _i2.HomePage();
+    },
+  );
+}
+
+/// generated route for
+/// [_i3.MiniAppPage]
+class MiniAppRoute extends _i5.PageRouteInfo<MiniAppRouteArgs> {
   MiniAppRoute({
-    _i5.Key? key,
+    _i6.Key? key,
     required String appId,
     String? initialPath,
-    List<_i4.PageRouteInfo>? children,
+    List<_i5.PageRouteInfo>? children,
   }) : super(
          MiniAppRoute.name,
          args: MiniAppRouteArgs(
@@ -54,7 +71,7 @@ class MiniAppRoute extends _i4.PageRouteInfo<MiniAppRouteArgs> {
 
   static const String name = 'MiniAppRoute';
 
-  static _i4.PageInfo page = _i4.PageInfo(
+  static _i5.PageInfo page = _i5.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -65,7 +82,7 @@ class MiniAppRoute extends _i4.PageRouteInfo<MiniAppRouteArgs> {
           initialPath: queryParams.optString('path'),
         ),
       );
-      return _i2.MiniAppPage(
+      return _i3.MiniAppPage(
         key: args.key,
         appId: args.appId,
         initialPath: args.initialPath,
@@ -77,7 +94,7 @@ class MiniAppRoute extends _i4.PageRouteInfo<MiniAppRouteArgs> {
 class MiniAppRouteArgs {
   const MiniAppRouteArgs({this.key, required this.appId, this.initialPath});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String appId;
 
@@ -102,12 +119,12 @@ class MiniAppRouteArgs {
 }
 
 /// generated route for
-/// [_i3.NativeMiniAppPage]
-class NativeMiniAppRoute extends _i4.PageRouteInfo<NativeMiniAppRouteArgs> {
+/// [_i4.NativeMiniAppPage]
+class NativeMiniAppRoute extends _i5.PageRouteInfo<NativeMiniAppRouteArgs> {
   NativeMiniAppRoute({
-    _i5.Key? key,
+    _i6.Key? key,
     required String appId,
-    List<_i4.PageRouteInfo>? children,
+    List<_i5.PageRouteInfo>? children,
   }) : super(
          NativeMiniAppRoute.name,
          args: NativeMiniAppRouteArgs(key: key, appId: appId),
@@ -117,7 +134,7 @@ class NativeMiniAppRoute extends _i4.PageRouteInfo<NativeMiniAppRouteArgs> {
 
   static const String name = 'NativeMiniAppRoute';
 
-  static _i4.PageInfo page = _i4.PageInfo(
+  static _i5.PageInfo page = _i5.PageInfo(
     name,
     builder: (data) {
       final pathParams = data.inheritedPathParams;
@@ -125,7 +142,7 @@ class NativeMiniAppRoute extends _i4.PageRouteInfo<NativeMiniAppRouteArgs> {
         orElse: () =>
             NativeMiniAppRouteArgs(appId: pathParams.getString('appId')),
       );
-      return _i3.NativeMiniAppPage(key: args.key, appId: args.appId);
+      return _i4.NativeMiniAppPage(key: args.key, appId: args.appId);
     },
   );
 }
@@ -133,7 +150,7 @@ class NativeMiniAppRoute extends _i4.PageRouteInfo<NativeMiniAppRouteArgs> {
 class NativeMiniAppRouteArgs {
   const NativeMiniAppRouteArgs({this.key, required this.appId});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String appId;
 
