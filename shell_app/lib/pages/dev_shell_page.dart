@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../mini_app/mini_app_models.dart';
 import '../mini_app/mini_app_repository.dart';
@@ -11,9 +12,9 @@ import '../shell_scope.dart';
 import 'dev_mini_app_view.dart';
 import 'dev_origin.dart';
 
-/// `/dev`: tab Live mở mini app như Home, tab Dev load URL debug có ShellBridge.
+/// `/dev`: vào tab DEBUG trước. Tab Live mở mini app như Home, nằm sau.
 ///
-/// Đổi tab không huỷ WebView. URL chỉ sống trong state của trang này.
+/// Cổng trong ô URL được nhớ ở application support. Phần còn lại chỉ sống trong trang này.
 @RoutePage()
 class DevShellPage extends StatefulWidget {
   const DevShellPage({super.key});
@@ -25,7 +26,6 @@ class DevShellPage extends StatefulWidget {
 class _DevShellPageState extends State<DevShellPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 2, vsync: this);
-  final _devKey = GlobalKey<DevMiniAppViewState>();
   var _index = 0;
 
   @override
@@ -52,22 +52,13 @@ class _DevShellPageState extends State<DevShellPage>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        // Tab Live không có WebView đang hiện: back pop /dev, không hỏi trang debug.
-        if (_tabs.index == 0) {
-          context.router.pop();
-          return;
-        }
-        final view = _devKey.currentState;
-        if (view == null) {
-          context.router.pop();
-          return;
-        }
-        view.handleBack();
+        context.router.pop();
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: const Text('DEV'),
+          automaticallyImplyLeading: false,
+          title: const Text('Host Debug Shell App'),
           actions: [
             // ✕ đóng thẳng /dev. router.pop bỏ qua PopScope, không hỏi backPressed.
             IconButton(
@@ -79,8 +70,8 @@ class _DevShellPageState extends State<DevShellPage>
           bottom: TabBar(
             controller: _tabs,
             tabs: const [
-              Tab(text: 'Live'),
-              Tab(text: 'Dev'),
+              Tab(text: 'DEBUG'),
+              Tab(text: 'LIVE'),
             ],
           ),
         ),
@@ -88,8 +79,8 @@ class _DevShellPageState extends State<DevShellPage>
           index: _index,
           sizing: StackFit.expand,
           children: [
+            const _DevTab(),
             const _LiveTab(),
-            _DevTab(viewKey: _devKey),
           ],
         ),
       ),
@@ -321,37 +312,110 @@ class _OpenRow extends StatelessWidget {
 }
 
 class _DevTab extends StatefulWidget {
-  const _DevTab({required this.viewKey});
-
-  final GlobalKey<DevMiniAppViewState> viewKey;
+  const _DevTab();
 
   @override
   State<_DevTab> createState() => _DevTabState();
 }
 
 class _DevTabState extends State<_DevTab> {
-  final _url = TextEditingController();
+  final _appId = TextEditingController(text: kDevDefaultAppId);
+  final _url = TextEditingController(text: kDevDefaultUrl)
+    ..selection = TextSelection.collapsed(offset: kDevDefaultUrl.length);
+
+  /// User đã sửa ô URL trước khi đọc xong cổng đã lưu thì không ghi đè.
+  var _urlTouched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _restorePort();
+  }
+
+  Future<void> _restorePort() async {
+    final port = readDevLastPort(await getApplicationSupportDirectory());
+    if (!mounted || port == null || _urlTouched) return;
+    final text = devUrlForPort(port);
+    _url.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    setState(() {});
+  }
+
+  void _rememberPort() {
+    final port = devExplicitPort(_url.text);
+    if (port == null) return;
+    getApplicationSupportDirectory().then(writeDevLastPortThen(port));
+  }
+
+  void Function(Directory) writeDevLastPortThen(String port) =>
+      (dir) => writeDevLastPort(dir, port);
 
   @override
   void dispose() {
+    _appId.dispose();
     _url.dispose();
     super.dispose();
   }
 
-  void _open(Uri? url) {
-    if (url == null) return;
-    widget.viewKey.currentState?.openUrl(url);
+  void _open(String? appId, Uri? url) {
+    if (appId == null || url == null) return;
+    final denied = devLockMessage(
+      appId,
+      devPolicyFor(ShellScope.of(context).config.value, appId),
+    );
+    if (denied != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(denied)));
+      return;
+    }
+    context.router.pushWidget(DevMiniAppView(url: url, appId: appId));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appId = parseDevAppId(_appId.text);
     final parsed = parseDevUrl(_url.text);
+    final known =
+        appId != null &&
+        ShellScope.of(context).config.value.apps.containsKey(appId);
     return Padding(
       padding: const EdgeInsets.all(DsSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          TextField(
+            controller: _appId,
+            autocorrect: false,
+            decoration: const InputDecoration(
+              labelText: 'App id',
+              hintText: 'mini_shop',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _open(appId, parsed),
+          ),
+          if (appId == null) ...[
+            const SizedBox(height: DsSpacing.xs),
+            Text(
+              kDevAppIdError,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ] else
+            Padding(
+              padding: const EdgeInsets.only(top: DsSpacing.xs),
+              child: Text(
+                known
+                    ? 'Dùng quyền của $appId trong config.'
+                    : '$appId chưa có trong config. Quyền bridge đầy đủ để phát triển.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          const SizedBox(height: DsSpacing.md),
           TextField(
             controller: _url,
             keyboardType: TextInputType.url,
@@ -362,9 +426,9 @@ class _DevTabState extends State<_DevTab> {
               border: OutlineInputBorder(),
             ),
             onChanged: (_) => setState(() {}),
-            onSubmitted: (_) => _open(parsed),
+            onSubmitted: (_) => _open(appId, parsed),
           ),
-          if (parsed == null) ...[
+          if (parsed == null && _url.text.trim() != kDevDefaultUrl) ...[
             const SizedBox(height: DsSpacing.xs),
             Text(
               kDevUrlError,
@@ -374,16 +438,14 @@ class _DevTabState extends State<_DevTab> {
             ),
           ],
           const SizedBox(height: DsSpacing.md),
-          Align(
-            alignment: Alignment.centerRight,
-            child: DsButton(
-              label: 'Mở',
-              icon: Icons.open_in_new,
-              onPressed: parsed == null ? null : () => _open(parsed),
-            ),
+          DsButton(
+            label: 'Mở',
+            icon: Icons.open_in_new,
+            expanded: true,
+            onPressed: appId == null || parsed == null
+                ? null
+                : () => _open(appId, parsed),
           ),
-          const SizedBox(height: DsSpacing.md),
-          Expanded(child: DevMiniAppView(key: widget.viewKey)),
         ],
       ),
     );

@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
               if (context.router.current.name == DevShellRoute.name) return;
               context.router.push(const DevShellRoute());
             },
-            child: const Text('DEV'),
+            child: const Text('DEBUG'),
           ),
         ],
       ),

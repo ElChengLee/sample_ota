@@ -32,6 +32,7 @@ void main() {
       expect(parseDevUrl('ftp://x'), isNull);
       expect(parseDevUrl('localhost:7357'), isNull);
       expect(parseDevUrl('http://'), isNull);
+      expect(parseDevUrl('http://localhost:'), isNull);
     });
   });
 
@@ -94,15 +95,47 @@ void main() {
     });
   });
 
-  test('mini_shop tạm khoá thì có SnackBar, không load', () {
+  group('parseDevAppId', () {
+    test('nhận id kiểu mini_shop', () {
+      expect(parseDevAppId('mini_shop'), 'mini_shop');
+      expect(parseDevAppId(' mini_game '), 'mini_game');
+      expect(parseDevAppId('new_app2'), 'new_app2');
+    });
+
+    test('từ chối rỗng, hoa, và ký tự lạ', () {
+      expect(parseDevAppId(''), isNull);
+      expect(parseDevAppId('MiniShop'), isNull);
+      expect(parseDevAppId('mini-shop'), isNull);
+    });
+  });
+
+  test('id có trong config dùng policy đó, id mới được đủ quyền bridge', () {
+    const shop = AppPolicy(
+      enabled: false,
+      permissions: {BridgePermissions.userInfo},
+    );
+    const config = ShellConfig(version: 1, apps: {'mini_shop': shop});
+    expect(devPolicyFor(config, 'mini_shop'), shop);
+    expect(devPolicyFor(config, 'mini_shop').enabled, isFalse);
+
+    final fresh = devPolicyFor(config, 'new_app');
+    expect(fresh.enabled, isTrue);
+    expect(fresh.permissions, BridgePermissions.all);
+  });
+
+  test('app đang tắt thì có SnackBar, không load', () {
     expect(
-      devShopLockMessage(
+      devLockMessage(
+        'mini_game',
         const AppPolicy(enabled: false, permissions: BridgePermissions.all),
       ),
-      'Mini app "mini_shop" đang tạm khoá.',
+      'Mini app "mini_game" đang tạm khoá.',
     );
     expect(
-      devShopLockMessage(const AppPolicy(permissions: BridgePermissions.all)),
+      devLockMessage(
+        'new_app',
+        const AppPolicy(permissions: BridgePermissions.all),
+      ),
       isNull,
     );
   });

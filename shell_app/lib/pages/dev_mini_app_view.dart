@@ -12,12 +12,15 @@ import '../shell_scope.dart';
 import 'dev_origin.dart';
 import 'payment_sheet.dart';
 
-/// WebView debug: load một URL http(s) và gắn `ShellBridge` với quyền `mini_shop`.
+/// Màn riêng: load một URL http(s) và gắn `ShellBridge` theo id mini app.
 ///
 /// Không có local server, không đòi mini app đã cài, không nhận deep link hệ
 /// điều hành (deep link đó vẫn vào [MiniAppPage]).
 class DevMiniAppView extends StatefulWidget {
-  const DevMiniAppView({super.key});
+  const DevMiniAppView({super.key, required this.url, required this.appId});
+
+  final Uri url;
+  final String appId;
 
   @override
   State<DevMiniAppView> createState() => DevMiniAppViewState();
@@ -28,11 +31,14 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
   late final WebViewController _webView;
   late final ShellBridgeHost _bridge;
 
-  /// Route `/dev`, để `close` và back đóng đúng trang kể cả khi đang có sheet.
+  /// Route của màn này, để `close` và back đóng đúng trang kể cả khi đang có sheet.
   ModalRoute<Object?>? _route;
 
-  /// Origin được phép đi tiếp. `null` khi chưa bấm **Mở**.
+  /// Origin được phép đi tiếp. `null` khi chưa load.
   Uri? _loaded;
+
+  /// Id đang mở.
+  late String _appId = widget.appId;
 
   /// Đã handshake (`init`) thì back hỏi mini app và theme được đẩy xuống.
   var _connected = false;
@@ -43,7 +49,7 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
   ThemeController get _themeController => _scope.themeController;
 
   /// Quyền đọc lúc gọi: config vừa đổi có hiệu lực ngay.
-  AppPolicy get _policy => _scope.config.value.policyOf(kDevMiniAppId);
+  AppPolicy get _policy => devPolicyFor(_scope.config.value, _appId);
 
   @override
   void initState() {
@@ -69,7 +75,7 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
         BridgeMethods.requestPayment: (params) async {
           final ok = await PaymentSheet.show(
             context,
-            appName: kDevMiniAppId,
+            appName: _appId,
             params: params,
           );
           return {
@@ -87,7 +93,7 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
           if (url == null) return {'opened': false, 'error': 'invalid'};
           final result = await _scope.deepLinks.open(
             url,
-            caller: const MiniAppCaller(kDevMiniAppId),
+            caller: MiniAppCaller(_appId),
           );
           return {
             'opened': result == DeepLinkResult.opened,
@@ -123,19 +129,24 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
 
     _themeController.addListener(_syncTheme);
     _scope.config.addListener(_onConfigChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) openUrl(widget.url, widget.appId);
+    });
   }
 
-  /// mini_shop bị tắt sau khi URL đã load: không trả lời bridge nữa.
+  /// App đang mở bị tắt sau khi URL đã load: không trả lời bridge nữa.
   void _onConfigChanged() {
-    final denied = devShopLockMessage(_policy);
+    if (_loaded == null) return;
+    final denied = devLockMessage(_appId, _policy);
     if (denied == null) return;
     _showSnackBar(denied);
     _closeDevPage();
   }
 
-  /// Load [url] nếu `mini_shop` đang bật. Query theme được gắn, fragment giữ nguyên.
-  Future<void> openUrl(Uri url) async {
-    final denied = devShopLockMessage(_policy);
+  /// Load [url] cho [appId] nếu app đó không bị tạm khoá. Query theme được gắn, fragment giữ nguyên.
+  Future<void> openUrl(Uri url, String appId) async {
+    _appId = appId;
+    final denied = devLockMessage(_appId, _policy);
     if (denied != null) {
       _showSnackBar(denied);
       return;
@@ -184,7 +195,7 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
     _bridge.emit(BridgeEvents.themeChanged, theme.toJson());
   }
 
-  /// Back hỏi mini app trước. Không trả lời hoặc `handled: false` thì pop `/dev`.
+  /// Back hỏi mini app trước. Không trả lời hoặc `handled: false` thì đóng màn này.
   Future<void> handleBack() async {
     if (_handlingBack) return;
     _handlingBack = true;
@@ -231,23 +242,42 @@ class DevMiniAppViewState extends State<DevMiniAppView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Stack(
-      children: [
-        SafeArea(top: false, child: WebViewWidget(controller: _webView)),
-        if (_error != null)
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            child: Material(
-              color: theme.colorScheme.errorContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(DsSpacing.sm),
-                child: Text(_error!, style: theme.textTheme.bodyMedium),
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) handleBack();
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: Text(widget.appId),
+          actions: [
+            IconButton(
+              tooltip: 'Đóng',
+              icon: const Icon(Icons.close),
+              onPressed: _closeDevPage,
             ),
-          ),
-      ],
+          ],
+        ),
+        body: Stack(
+          children: [
+            SafeArea(top: false, child: WebViewWidget(controller: _webView)),
+            if (_error != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                child: Material(
+                  color: theme.colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(DsSpacing.sm),
+                    child: Text(_error!, style: theme.textTheme.bodyMedium),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
