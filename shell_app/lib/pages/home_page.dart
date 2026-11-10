@@ -6,6 +6,7 @@ import 'package:mini_app_bridge/mini_app_bridge.dart';
 import '../config.dart';
 import '../mini_app/mini_app_models.dart';
 import '../mini_app/mini_app_repository.dart';
+import '../mini_app/open_mini_app.dart';
 import '../native_apps/native_mini_apps.dart';
 import '../router/app_router.dart';
 import '../shell_scope.dart';
@@ -101,38 +102,24 @@ class _HomePageState extends State<HomePage> {
     if (_opening) return;
     _opening = true;
     try {
-      await _installAndOpen(listing);
+      // Future hoàn tất khi mini app đóng -> _opening giữ true suốt thời gian đó.
+      await installAndOpenMiniApp(
+        context,
+        listing: listing,
+        repository: _repo,
+        onProgress: (progress) {
+          if (!mounted) return;
+          setState(() => _downloads[listing.info.id] = progress);
+        },
+        onFinished: () {
+          if (!mounted) return;
+          setState(() => _downloads.remove(listing.info.id));
+        },
+        refresh: _refresh,
+      );
     } finally {
       _opening = false;
     }
-  }
-
-  Future<void> _installAndOpen(MiniAppListing listing) async {
-    var installed = listing.installed;
-    try {
-      if (listing.remote != null && (listing.needsDownload || listing.hasUpdate)) {
-        setState(() => _downloads[listing.info.id] = 0);
-        installed = await _repo.install(
-          listing.remote!,
-          onProgress: (v) => setState(() => _downloads[listing.info.id] = v),
-        );
-      }
-    } on Object catch (e) {
-      debugPrint('[Home] install ${listing.info.id} failed: $e');
-      final message = e is MiniAppInstallException ? e.message : 'Không tải được mini app, kiểm tra kết nối mạng.';
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tải thất bại: $message')));
-      }
-      return;
-    } finally {
-      if (mounted) setState(() => _downloads.remove(listing.info.id));
-    }
-
-    if (!mounted || installed == null) return;
-    await _refresh();
-    if (!mounted) return;
-    // Future của push hoàn tất khi mini app đóng -> _opening giữ true suốt thời gian đó.
-    await context.router.push(MiniAppRoute(appId: installed.info.id));
   }
 
   Future<void> _uninstall(MiniAppListing listing) async {
@@ -144,7 +131,18 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Super App')),
+      appBar: AppBar(
+        title: const Text('Super App'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (context.router.current.name == DevShellRoute.name) return;
+              context.router.push(const DevShellRoute());
+            },
+            child: const Text('DEBUG'),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(

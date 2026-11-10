@@ -11,6 +11,7 @@ export 'app_router.gr.dart';
 /// Route của Shell:
 /// ```
 /// /                                   HomeRoute
+/// /dev                                DevShellRoute (không guard)
 /// /mini-app/:appId?path=/product/p2   MiniAppRoute (guard: đã cài, không bị tạm khoá)
 /// /native/:appId                      NativeMiniAppRoute (guard: không bị tạm khoá)
 /// ```
@@ -27,6 +28,7 @@ class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
         AutoRoute(page: HomeRoute.page, path: '/', initial: true),
+        AutoRoute(page: DevShellRoute.page, path: '/dev'),
         AutoRoute(
           page: MiniAppRoute.page,
           path: '/mini-app/:appId',
